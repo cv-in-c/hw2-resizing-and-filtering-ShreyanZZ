@@ -13,7 +13,7 @@ else if(x<0) x=0;
 if(y<0) y=0;
 else if(y>255) y=255;
 
-return im.data[x + (im.w)y + (im.w)(im.h)*c];
+return im.data[x + (im.w)*y + (im.w)*(im.h)*c];
     
    
 }
@@ -24,7 +24,7 @@ void set_pixel(image im, int x, int y, int c, float v)
         return;
     }
     else{
-        im.data[x + (im.w)y + (im.w)(im.h)*c] = v;
+        im.data[x + (im.w)*y + (im.w)*(im.h)*c] = v;
 
     }
    
@@ -39,7 +39,7 @@ image copy_image(image im)
     for(int i=0; i<im.c; i++){
         for(int j=0; j<im.h; j++){
             for(int k=0; k<im.w; k++){
-                copy.data[k + (copy.w)j + (copy.w)(copy.h)i] = im.data[k + (im.w)*j + (im.w)(im.h)*i];
+                copy.data[k + (copy.w)*j + (copy.w)*(copy.h)*i] = im.data[k + (im.w)*j + (im.w)*(im.h)*i];
             }
         }
     }
@@ -51,11 +51,11 @@ image rgb_to_grayscale(image im)
 {
     assert(im.c == 3);
     image gray = make_image(im.w, im.h, 1);
-    
+    image copy= copy_image(im);
     
         for(int j=0; j<im.h; j++){
             for(int k=0; k<im.w; k++){
-                gray.data[k + (copy.w)j] = 0.299*im.data[k + (im.w)*j] + 0.587 im.data[k + (im.w)j +(im.w)(im.h)] + 0.114*im.data[k + (im.w)j + (im.w)(im.h)*2];
+                gray.data[k + (copy.w)*j] = 0.299*im.data[k + (im.w)*j] + 0.587*im.data[k + (im.w)*j +(im.w)*(im.h)] + 0.114*im.data[k + (im.w)*j + (im.w)*(im.h)*2];
             }
         }
     
@@ -67,7 +67,7 @@ void shift_image(image im, int c, float v)
     
         for(int j=0; j<im.h; j++){
             for(int k=0; k<im.w; k++){
-                im.data[k + (im.w)j + (im.w)(im.h)*c] += v;
+                im.data[k + (im.w)*j + (im.w)*(im.h)*c] += v;
             }
         }
     
@@ -78,8 +78,8 @@ void clamp_image(image im)
    for(int i=0; i<im.c; i++){
         for(int j=0; j<im.h; j++){
             for(int k=0; k<im.w; k++){
-                if(im.data[k + (im.w)j + (im.w)(im.h)i] <0) im.data[k + (im.w)*j + (im.w)(im.h)*i]=0;
-                else if(im.data[k + (im.w)j + (im.w)(im.h)i]>255) im.data[k + (im.w)*j + (im.w)(im.h)*i]=255;
+                if(im.data[k + (im.w)*j + (im.w)*(im.h)*i] <0) im.data[k + (im.w)*j + (im.w)*(im.h)*i]=0;
+                else if(im.data[k + (im.w)*j + (im.w)*(im.h)*i]>255) im.data[k + (im.w)*j + (im.w)*(im.h)*i]=255;
                 else continue;
             }
         }
@@ -108,28 +108,29 @@ for(int i=0; i<im.h; i++){
     float m=three_way_min(im.data[j+ i*im.w], im.data[j+i*im.w+im.h*im.w], im.data[j+i*im.w+2*im.h*im.w]);
 
 //calculating saturation
-
-    if(im.data[j+ i*im.w] || im.data[j+i*im.w+im.h*im.w] || im.data[j+i*im.w+2*im.h*im.w]) float S = (V-m)/V;
-    else float S = 0;
+    float S;
+    if(im.data[j+ i*im.w] || im.data[j+i*im.w+im.h*im.w] || im.data[j+i*im.w+2*im.h*im.w]){  S = (V-m)/V;}
+    else{  S = 0;}
 
 //calculating hue
-    if(V==m) float H = 0;
+float H;
+    if(V==m){ H = 0;}
     else if(V-m!=0){
         if(V==im.data[j+ i*im.w]){
             float H1 = (im.data[j+i*im.w+im.h*im.w]-im.data[j+i*im.w+2*im.h*im.w])/(V-m);
-            if(H1<0) float H = H1/6 + 1;
-            else float H = H1/6;
+            if(H1<0){  H = H1/6 + 1;}
+            else{  H = H1/6;}
 
         }
         else if(V == im.data[j+i*im.w+im.h*im.w]){
             float H1 = (im.data[j+i*im.w+2*im.h*im.w]-im.data[j+ i*im.w])/(V-m) + 2;
-            if(H1<0) float H = H1/6 + 1;
-            else float H = H1/6;
+            if(H1<0){ H = H1/6 + 1;}
+            else{  H = H1/6;}
         }
         else if(V== im.data[j+i*im.w+2*im.h*im.w]){
             float H1 = (im.data[j+ i*im.w]-im.data[j+i*im.w+im.h*im.w])/(V-m) + 4;
-            if(H1<0) float H = H1/6 + 1;
-            else float H = H1/6;
+            if(H1<0){  H = H1/6 + 1;}
+            else{  H = H1/6;}
         }
     }
     im.data[j+ i*im.w]=H;
@@ -154,7 +155,7 @@ void hsv_to_rgb(image im)
         float F=im.data[j+ i*im.w]-p;
         float m=im.data[j+ i*im.w+ 2*im.h*im.w]*(1-im.data[j+ i*im.w+ im.h*im.w]);
         float n=im.data[j+ i*im.w+ 2*im.h*im.w]*(1-im.data[j+ i*im.w+ im.h*im.w]*F);
-        float k=im.data[j+ i*im.w+ 2*im.h*im.w](1-im.data[j+ i*im.w+ im.h*im.w](1-F));
+        float k=im.data[j+ i*im.w+ 2*im.h*im.w]*(1-im.data[j+ i*im.w+ im.h*im.w]*(1-F));
         switch(p){
             case 0: R=im.data[j+ i*im.w+ 2*im.h*im.w];
                     G=k;
